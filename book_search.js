@@ -15,10 +15,10 @@
 /**
  * Searches for matches in scanned text.
  * @param {string} searchTerm - The word or term we're searching for.
- * @param {JSON} currentBookTextObj - A JSON object representing the scanned text.
+ * @param {JSON} scannedTextObj - A JSON object representing the scanned text.
  * @returns {JSON} - Search results.
  * */
- function findSearchTermInBooks(searchTerm, currentBookTextObj) {
+ function findSearchTermInBooks(searchTerm, scannedTextObj) {
      /** A search term is required to perform a search */
     if(!searchTerm) {
         console.log("Please enter a search term.");
@@ -30,8 +30,8 @@
         "Results": []
     };
 
-    for (let i = 0; i < currentBookTextObj.length; i++) {
-        const currentBook = currentBookTextObj[i];
+    for (let i = 0; i < scannedTextObj.length; i++) {
+        const currentBook = scannedTextObj[i];
 
         for (let j = 0; j < currentBook.Content.length; j++) {
             const currentBookContent = currentBook.Content[j];

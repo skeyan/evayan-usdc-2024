@@ -25,8 +25,10 @@
         return {};
     }
 
+    const formattedSearchTerm = searchTerm.trim();
+
     var result = {
-        "SearchTerm": searchTerm,
+        "SearchTerm": formattedSearchTerm,
         "Results": []
     };
 
@@ -38,7 +40,7 @@
             const currentBookText = currentBookContent.Text;
 
             // Escape special characters in the search string
-            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const escapedSearchTerm = formattedSearchTerm.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
 
             // Create a regular expression with word boundaries and case sensitivity
             const regex = new RegExp("\\b" + escapedSearchTerm + "\\b");
@@ -47,10 +49,9 @@
             if(regex.test(currentBookText)) {
                 result.Results.push({
                     ISBN: currentBook.ISBN,
-                    Line: currentBookContent.Line,
                     Page: currentBookContent.Page,
+                    Line: currentBookContent.Line,
                 });
-                break;
             }
         }
     }
@@ -110,26 +111,49 @@
 function printTestResults(testResult, expectedResult, testIdentifier) {
     console.log("Now testing:", testIdentifier);
 
-    if (typeof value === 'number') {
-        if (JSON.stringify(expectedResult) == JSON.stringify(testResult)) {
+    if (testResult.SearchTerm !== expectedResult.SearchTerm) {
+        console.log("FAIL");
+        console.log("Expected:", expectedResult);
+        console.log("Received:", testResult);
+        return;
+    }
+
+    if (typeof expectedResult === 'number') {
+        if (expectedResult === testResult) {
             console.log("PASS");
         } else {
             console.log("FAIL");
             console.log("Expected:", expectedResult);
             console.log("Received:", testResult);
         }
+        return;
     }
 
-    if (testResult.ISBN == expectedResult.ISBN
-        && testResult.Page == expectedResult.Page
-        && testResult.Line == expectedResult.Page)
-    {
-        console.log("PASS");
-    }
-    else {
+    /** Note: JSON.stringify must be applied to simple objects only, or will fail due to reordering of keys */
+    const testResultLineMatches = testResult.Results;
+    const expectedResultLineMatches = expectedResult.Results;
+
+    if (testResultLineMatches.length !== expectedResultLineMatches.length) {
         console.log("FAIL");
         console.log("Expected:", expectedResult);
         console.log("Received:", testResult);
+        return;
+    }
+
+    for (let i = 0; i < expectedResultLineMatches.length; i++) {
+        const testLineMatch = testResultLineMatches[i];
+        const expectedLineMatch = expectedResultLineMatches[i];
+        if (testLineMatch.ISBN === expectedLineMatch.ISBN &&
+            testLineMatch.Page === expectedLineMatch.Page &&
+            testLineMatch.Line === expectedLineMatch.Line) {
+                console.log("PASS");
+                break;
+            } else {
+                console.log("FAIL");
+                console.log("Expected:", expectedResult);
+                console.log("Received:", testResult);
+                break;
+            }
     }
 }
 
@@ -138,12 +162,12 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
 function testLowerCaseSearchTermReturnsCorrectResults() {
     const testResult = findSearchTermInBooks("he", twentyLeaguesIn);
     const expectedResult =  {
-        "SearchTerm": "the",
+        "SearchTerm": "he",
         "Results": [
             {
                 "ISBN": "9780000528531",
                 "Page": 31,
-                "Line": 9
+                "Line": 10
             }
         ]
     };
@@ -194,12 +218,68 @@ function testSearchTermDoesNotMatchAsSubstring() {
             {
                 "ISBN": "9780000528531",
                 "Page": 31,
-                "Line": 10
+                "Line": 9
             }
         ]
     };
 
     printTestResults(testResult, expectedResult, "testSearchTermDoesNotMatchAsSubstring");
+}
+
+/** We can check that, given a search term with more than one word, it matches correctly */
+function testSearchTermWithMultipleWordsReturnsCorrectResults() {
+    const testResult = findSearchTermInBooks("asked myself", twentyLeaguesIn);
+    const expectedResult =  {
+        "SearchTerm": "asked myself",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Line": 10,
+                "Page": 31,
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermWithMultipleWordsReturnsCorrectResults");
+}
+
+/** We can check that, given a search term, it can successfully match at the start of a string */
+function testSearchTermMatchesStartOfStringCorrectly() {
+    const testResult = findSearchTermInBooks("eyes", twentyLeaguesIn);
+    const expectedResult =  {
+        "SearchTerm": "eyes",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Page": 31,
+                "Line": 10
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermMatchesStartOfStringCorrectly");
+}
+
+/** We can check that, given a search term, it can successfully match at the end of a string */
+function testSearchTermMatchesEndOfStringCorrectly() {
+    const testResult = findSearchTermInBooks("and", twentyLeaguesIn);
+    const expectedResult =  {
+        "SearchTerm": "and",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Page": 31,
+                "Line": 9
+            },
+            {
+                "ISBN": "9780000528531",
+                "Page": 31,
+                "Line": 10
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermMatchesEndOfStringCorrectly");
 }
 
 /** We can check that given a search term with an apostrophe, it is matched correctly */
@@ -223,7 +303,7 @@ function testSearchTermWithApostropheReturnsCorrectResults() {
 function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
     const testResult = findSearchTermInBooks("profound", twentyLeaguesIn);
     const expectedResult =  {
-        "SearchTerm": "Canadian's",
+        "SearchTerm": "profound",
         "Results": [
             {
                 "ISBN": "9780000528531",
@@ -244,8 +324,12 @@ function runMainTests() {
     testLowerCaseSearchTermReturnsCorrectNumberOfResults();
     testCapitalizedSearchTermReturnsCorrectResults();
     testSearchTermDoesNotMatchAsSubstring();
+    testSearchTermWithMultipleWordsReturnsCorrectResults();
+
 
     // Edge cases - Punctuation
+    testSearchTermMatchesStartOfStringCorrectly();
+    testSearchTermMatchesEndOfStringCorrectly();
     testSearchTermWithApostropheReturnsCorrectResults();
     testSearchTermReturnsCorrectResultsWhenNextToPunctuation();
 }

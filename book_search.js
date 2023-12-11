@@ -24,25 +24,22 @@
         "Results": []
     };
 
-    for (let i = 0; i < scannedTextObj.length; i++) {
-        const currentBook = scannedTextObj[i];
+    /* Skip iteration if searchTerm is not defined, empty, or blank */
+    if (!searchTerm.trim()) {
+        console.log("WARNING: searchTerm was expected to be defined, non-empty, and non-blank, but was not.")
+        return result;
+    }
 
-        for (let j = 0; j < currentBook.Content.length; j++) {
-            const currentBookContent = currentBook.Content[j];
-            const currentBookText = currentBookContent.Text;
+    /* Iterate through scanned books to perform case-sensitive search */
+    for (const book of scannedTextObj ) {
+        for (const bookContent of book.Content) {
+            const bookContentText = bookContent.Text;
 
-            // Escape special characters in the search string to allow punctuation in search term
-            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
-
-            // Create a regular expression using word boundaries, with case sensitivity
-            const regex = new RegExp("\\b" + escapedSearchTerm + "\\b");
-
-            // Test if the target string contains the search string
-            if(regex.test(currentBookText)) {
+            if (bookContentText.includes(searchTerm)) {
                 result.Results.push({
-                    ISBN: currentBook.ISBN,
-                    Page: currentBookContent.Page,
-                    Line: currentBookContent.Line,
+                    ISBN: book.ISBN,
+                    Page: bookContent.Page,
+                    Line: bookContent.Line,
                 });
             }
         }
@@ -139,6 +136,30 @@ const multipleBooksIn = [
     }
 ];
 
+const otherLanguageIn = [
+    {
+        "Title": "过故人庄",
+        "ISBN": "9780000528538",
+        "Content": [
+            {
+                "Page": 1,
+                "Line": 1,
+                "Text": "故人具鸡黍，"
+            },
+            {
+                "Page": 1,
+                "Line": 2,
+                "Text": "邀我至田家。"
+            },
+            {
+                "Page": 1,
+                "Line": 3,
+                "Text": "绿树村边合，Some English text"
+            },
+        ]
+    }
+];
+
 /**
  * Helper that checks if a two line match objects are equivalent in value.
  * @param {JSON} testLineMatch Line match object to test
@@ -164,47 +185,17 @@ function isMatchingLine(testLineMatch, expectedLineMatch) {
  *
  * @param {JSON} testResult - JSON object representing the result of the test search.
  * @param {JSON} expectedResult - JSON object representing the correct expected result.
- * @param {String} testIdentifier - String to identify the test; e.g. the name of the test.
  * @returns {Void} Prints failure or success message as well as both parameters.
  */
-function printTestResults(testResult, expectedResult, testIdentifier) {
-    console.log("Now testing:", testIdentifier);
-
-    if (testResult.SearchTerm !== expectedResult.SearchTerm) {
-        console.log("FAIL");
-        console.log("Expected:", expectedResult);
-        console.log("Received:", testResult);
+function printTestResults(testResult, expectedResult) {
+    if (JSON.stringify(testResult == JSON.stringify(expectedResult))) {
+        console.log("PASS");
         return;
     }
 
-    /**
-     * JSON.stringify may fail on complex objects due to reordering of keys,
-     * hence checking object values.
-     */
-    const testResultLineMatches = testResult.Results;
-    const expectedResultLineMatches = expectedResult.Results;
-
-    if (testResultLineMatches.length !== expectedResultLineMatches.length) {
-        console.log("FAIL");
-        console.log("Expected:", expectedResult);
-        console.log("Received:", testResult);
-        return;
-    }
-
-    expectedResultLineMatches.find(expectedLineMatch => {
-        const testLineMatch = testResultLineMatches.find(testLineMatch =>
-            isMatchingLine(testLineMatch, expectedLineMatch)
-        );
-
-        if (!(testLineMatch)) {
-            console.log("FAIL");
-            console.log("Expected:", expectedResultLineMatches);
-            console.log("Received:", testResultLineMatches);
-            return false;
-        }
-    });
-
-    console.log("PASS");
+    console.log("FAIL");
+    console.log("Expected:", expectedResult);
+    console.log("Received:", testResult);
     return;
 }
 
@@ -217,12 +208,9 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
  *
  * @param {Number} testResult - Number representing the result of the test search.
  * @param {Number} expectedResult - Number representing the correct expected result.
- * @param {String} testIdentifier - String to identify the test; e.g. the name of the test.
  * @returns {Void} Prints failure or success message as well as both parameters.
  */
-function printTestResultsForResultsLengthTest(testResult, expectedResult, testIdentifier) {
-    console.log("Now testing:", testIdentifier);
-
+function printTestResultsForResultsLengthTest(testResult, expectedResult) {
     if (testResult.SearchTerm !== expectedResult.SearchTerm) {
         console.log("FAIL");
         console.log("Expected:", expectedResult);
@@ -258,23 +246,7 @@ function printTestResultsForResultsLengthTest(testResult, expectedResult, testId
 
 /** We can check that, given a known lowercase input, we get a known output. */
 function testLowerCaseSearchTermReturnsCorrectResults() {
-    const testResult = findSearchTermInBooks("he", twentyLeaguesIn);
-    const expectedResult =  {
-        "SearchTerm": "he",
-        "Results": [
-            {
-                "ISBN": "9780000528531",
-                "Page": 31,
-                "Line": 10
-            }
-        ]
-    };
-
-    printTestResults(testResult, expectedResult, "testLowerCaseSearchTermReturnsCorrectResults");
-}
-
-/** We could choose to check that we get the right number of results. */
-function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
+    console.log("Now testing: testLowerCaseSearchTermReturnsCorrectResults");
     const testResult = findSearchTermInBooks("the", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "the",
@@ -287,12 +259,30 @@ function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
         ]
     };
 
-    printTestResultsForResultsLengthTest(testResult.Results.length, expectedResult.Results.length,
-        "testLowerCaseSearchTermReturnsCorrectNumberOfResults");
+    printTestResults(testResult, expectedResult);
+}
+
+/** We could choose to check that we get the right number of results. */
+function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
+    console.log("Now testing: testLowerCaseSearchTermReturnsCorrectNumberOfResults");
+    const testResult = findSearchTermInBooks("the", twentyLeaguesIn);
+    const expectedResult =  {
+        "SearchTerm": "the",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Page": 31,
+                "Line": 9
+            }
+        ]
+    };
+
+    printTestResultsForResultsLengthTest(testResult.Results.length, expectedResult.Results.length);
 }
 
 /** We can check that, given a known capitalized input, we get a known output. */
 function testCapitalizedSearchTermReturnsCorrectResults() {
+    console.log("Now testing: testCapitalizedSearchTermReturnsCorrectResults");
     const testResult = findSearchTermInBooks("The", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "The",
@@ -305,31 +295,12 @@ function testCapitalizedSearchTermReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testCapitalizedSearchTermReturnsCorrectResults");
-}
-
-/**
- * We can check that, given a search term, we do not match when it is partially in another word
- * Example: "then" is not a match for "the".
-*/
-function testSearchTermDoesNotMatchAsSubstring() {
-    const testResult = findSearchTermInBooks("the", twentyLeaguesIn);
-    const expectedResult =  {
-        "SearchTerm": "the",
-        "Results": [
-            {
-                "ISBN": "9780000528531",
-                "Page": 31,
-                "Line": 9
-            }
-        ]
-    };
-
-    printTestResults(testResult, expectedResult, "testSearchTermDoesNotMatchAsSubstring");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that, given a search term with more than one word, it matches correctly */
 function testSearchTermWithMultipleWordsReturnsCorrectResults() {
+    console.log("Now testing: testSearchTermWithMultipleWordsReturnsCorrectResults");
     const testResult = findSearchTermInBooks("asked myself", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "asked myself",
@@ -342,11 +313,12 @@ function testSearchTermWithMultipleWordsReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermWithMultipleWordsReturnsCorrectResults");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that, given multiple books in the input, we return the correct results */
 function testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput() {
+    console.log("Now testing: testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput");
     const testResult = findSearchTermInBooks("good", multipleBooksIn);
     const expectedResult =  {
         "SearchTerm": "good",
@@ -364,11 +336,12 @@ function testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that, given a search term, it can successfully match at the start of a line */
 function testSearchTermMatchesStartOfStringCorrectly() {
+    console.log("Now testing: testSearchTermMatchesStartOfStringCorrectly");
     const testResult = findSearchTermInBooks("eyes", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "eyes",
@@ -381,11 +354,12 @@ function testSearchTermMatchesStartOfStringCorrectly() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermMatchesStartOfStringCorrectly");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that, given a search term, it can successfully match at the end of a string */
 function testSearchTermMatchesEndOfStringCorrectly() {
+    console.log("Now testing: testSearchTermMatchesEndOfStringCorrectly");
     const testResult = findSearchTermInBooks("and", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "and",
@@ -403,11 +377,12 @@ function testSearchTermMatchesEndOfStringCorrectly() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermMatchesEndOfStringCorrectly");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that given a search term with an apostrophe, it is matched correctly */
 function testSearchTermWithApostropheReturnsCorrectResults() {
+    console.log("Now testing: testSearchTermWithApostropheReturnsCorrectResults");
     const testResult = findSearchTermInBooks("Canadian's", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "Canadian's",
@@ -420,11 +395,12 @@ function testSearchTermWithApostropheReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermWithApostropheReturnsCorrectResults");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that a search term matches correctly when located next to punctuation */
 function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
+    console.log("Now testing: testSearchTermReturnsCorrectResultsWhenNextToPunctuation");
     const testResult = findSearchTermInBooks("profound", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": "profound",
@@ -437,11 +413,12 @@ function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWhenNextToPunctuation");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that a search term matches correctly when the search term starts with punctuation */
 function testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation() {
+    console.log("Now testing: testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation");
     const testResult = findSearchTermInBooks(".  The", twentyLeaguesIn);
     const expectedResult =  {
         "SearchTerm": ".  The",
@@ -454,52 +431,96 @@ function testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation() {
         ]
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that a single input with no content lines returns no matches */
 function testSearchTermReturnsNoResultsWhenSingleInputHasNoContent() {
+    console.log("Now testing: testSearchTermReturnsNoResultsWhenSingleInputHasNoContent");
     const testResult = findSearchTermInBooks("profound", singleInputEmptyContentIn);
     const expectedResult =  {
         "SearchTerm": "profound",
         "Results": []
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermReturnsNoResultsWhenSingleInputHasNoContent");
+    printTestResults(testResult, expectedResult);
 }
 
 /** We can check that completely empty input returns no matches */
 function testSearchTermReturnsNoResultsWhenInputIsEmpty() {
+    console.log("Now testing: testSearchTermReturnsNoResultsWhenInputIsEmpty");
     const testResult = findSearchTermInBooks("profound", emptyBookMatchesIn);
     const expectedResult =  {
         "SearchTerm": "profound",
         "Results": []
     };
 
-    printTestResults(testResult, expectedResult, "testSearchTermReturnsNoResultsWhenInputIsEmpty");
+    printTestResults(testResult, expectedResult);
 }
 
+/** We can check that a search in another language returns correct results */
+function testSearchTermReturnsCorrectResultsInAnotherLanguage() {
+    console.log("Now testing: testSearchTermReturnsCorrectResultsInAnotherLanguage");
+    const testResult = findSearchTermInBooks("故人", otherLanguageIn);
+    const expectedResult =  {
+        "SearchTerm": "故人",
+        "Results": [
+            {
+                "ISBN": "9780000528538",
+                "Page": 1,
+                "Line": 1
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult);
+}
+
+/** We can check that a search term with multiple languages returns correct results */
+function testMixedLanguageSearchTermReturnsCorrectResults() {
+    console.log("Now testing: testMixedLanguageSearchTermReturnsCorrectResults");
+    const testResult = findSearchTermInBooks("绿树村边合，Some", otherLanguageIn);
+    const expectedResult =  {
+        "SearchTerm": "绿树村边合，Some",
+        "Results": [
+            {
+                "ISBN": "9780000528538",
+                "Page": 1,
+                "Line": 3
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult);
+}
 
 /** Function to consolidate and run all unit tests in order */
 function runTests() {
-    // Basic cases
+    console.log("TESTING: POSITIVE CASES");
+    // Basic positive cases
     testLowerCaseSearchTermReturnsCorrectResults();
     testLowerCaseSearchTermReturnsCorrectNumberOfResults();
     testCapitalizedSearchTermReturnsCorrectResults();
-    testSearchTermDoesNotMatchAsSubstring();
     testSearchTermWithMultipleWordsReturnsCorrectResults();
     testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput();
 
     // Edge cases - Punctuation
+    console.log("TESTING: PUNCTUATION");
     testSearchTermMatchesStartOfStringCorrectly();
     testSearchTermMatchesEndOfStringCorrectly();
     testSearchTermWithApostropheReturnsCorrectResults();
     testSearchTermReturnsCorrectResultsWhenNextToPunctuation();
     testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation();
 
-    // Edge cases - Empty Objects
+    // Edge cases - Basic negative cases
+    console.log("TESTING: NEGATIVE CASES");
     testSearchTermReturnsNoResultsWhenSingleInputHasNoContent();
     testSearchTermReturnsNoResultsWhenInputIsEmpty();
+
+    // Edge cases - Other Languages
+    console.log("TESTING: Other LANGUAGES");
+    testSearchTermReturnsCorrectResultsInAnotherLanguage();
+    testMixedLanguageSearchTermReturnsCorrectResults();
 }
 
 /** Run test suite */

@@ -94,6 +94,51 @@ const singleInputEmptyContentIn = [
 
 const emptyBookMatchesIn = [];
 
+const multipleBooksIn = [
+    {
+        "Title": "Fairy Tale",
+        "ISBN": "9780000528535",
+        "Content": [
+            {
+                "Page": 1,
+                "Line": 1,
+                "Text": "Once upon a time, there lived a"
+            },
+            {
+                "Page": 1,
+                "Line": 2,
+                "Text": "girl with golden locks. Together with 3"
+            },
+            {
+                "Page": 1,
+                "Line": 3,
+                "Text": "bears, she ate lots of good delicious food in"
+            }
+        ]
+    },
+    {
+        "Title": "Twenty Thousand Leagues Under the Sea",
+        "ISBN": "9780000528531",
+        "Content": [
+            {
+                "Page": 31,
+                "Line": 8,
+                "Text": "now simply went on by her own momentum.  The dark-"
+            },
+            {
+                "Page": 31,
+                "Line": 9,
+                "Text": "ness was then profound; and however good the Canadian\'s"
+            },
+            {
+                "Page": 31,
+                "Line": 10,
+                "Text": "eyes were, I asked myself how he had managed to see, and"
+            }
+        ]
+    }
+];
+
 /**
  * Helper that checks if a two line match objects are equivalent in value.
  * @param {JSON} testLineMatch Line match object to test
@@ -300,6 +345,28 @@ function testSearchTermWithMultipleWordsReturnsCorrectResults() {
     printTestResults(testResult, expectedResult, "testSearchTermWithMultipleWordsReturnsCorrectResults");
 }
 
+/** We can check that, given multiple books in the input, we return the correct results */
+function testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput() {
+    const testResult = findSearchTermInBooks("good", multipleBooksIn);
+    const expectedResult =  {
+        "SearchTerm": "good",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Line": 9,
+                "Page": 31,
+            },
+            {
+                "ISBN": "9780000528535",
+                "Line": 3,
+                "Page": 1,
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput");
+}
+
 /** We can check that, given a search term, it can successfully match at the start of a line */
 function testSearchTermMatchesStartOfStringCorrectly() {
     const testResult = findSearchTermInBooks("eyes", twentyLeaguesIn);
@@ -421,6 +488,7 @@ function runTests() {
     testCapitalizedSearchTermReturnsCorrectResults();
     testSearchTermDoesNotMatchAsSubstring();
     testSearchTermWithMultipleWordsReturnsCorrectResults();
+    testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput();
 
     // Edge cases - Punctuation
     testSearchTermMatchesStartOfStringCorrectly();

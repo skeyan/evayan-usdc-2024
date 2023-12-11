@@ -19,16 +19,8 @@
  * @returns {JSON} - Search results.
  * */
  function findSearchTermInBooks(searchTerm, scannedTextObj) {
-     /** A search term is required to perform a search */
-    if(!searchTerm) {
-        console.log("Please enter a search term.");
-        return {};
-    }
-
-    const formattedSearchTerm = searchTerm.trim();
-
     var result = {
-        "SearchTerm": formattedSearchTerm,
+        "SearchTerm": searchTerm,
         "Results": []
     };
 
@@ -39,8 +31,8 @@
             const currentBookContent = currentBook.Content[j];
             const currentBookText = currentBookContent.Text;
 
-            // Escape special characters in the search string to allow punctuation search
-            const escapedSearchTerm = formattedSearchTerm.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
+            // Escape special characters in the search string to allow punctuation in search term
+            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
 
             // Create a regular expression using word boundaries, with case sensitivity
             const regex = new RegExp("\\b" + escapedSearchTerm + "\\b");
@@ -102,6 +94,12 @@ const singleInputEmptyContentIn = [
 
 const emptyBookMatchesIn = [];
 
+/**
+ * Helper that checks if a two line match objects are equivalent in value.
+ * @param {JSON} testLineMatch Line match object to test
+ * @param {JSON} expectedLineMatch Line match object to test
+ * @returns {Boolean} Returns true if ISBN, Page, and Line values are equal.
+ */
 function isMatchingLine(testLineMatch, expectedLineMatch) {
     return (
         testLineMatch.ISBN === expectedLineMatch.ISBN &&
@@ -111,8 +109,9 @@ function isMatchingLine(testLineMatch, expectedLineMatch) {
 }
 
 /**
- * Print out unit test results to compare expected versus actual results.
- * A length comparison test passes if:
+ * Generic helper that prints out unit test results to compare expected versus actual results.
+ *
+ * A numeric length comparison test passes if:
  * - Lengths are equal
  *
  * A JSON response test passes if:
@@ -147,7 +146,10 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
         return;
     }
 
-    /** Note: JSON.stringify may fail on complex objects due to reordering of keys */
+    /**
+     * JSON.stringify may fail on complex objects due to reordering of keys,
+     * so checking object values.
+     */
     const testResultLineMatches = testResult.Results;
     const expectedResultLineMatches = expectedResult.Results;
 
@@ -172,6 +174,7 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
     });
 
     console.log("PASS");
+    return;
 }
 
 
@@ -221,7 +224,8 @@ function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
         ]
     };
 
-    printTestResults(testResult.Results.length, expectedResult.Results.length, "testLowerCaseSearchTermReturnsCorrectNumberOfResults");
+    printTestResults(testResult.Results.length, expectedResult.Results.length,
+        "testLowerCaseSearchTermReturnsCorrectNumberOfResults");
 }
 
 /** We can check that, given a known capitalized input, we get a known output. */
@@ -375,7 +379,7 @@ function testSearchTermReturnsNoResultsWhenInputIsEmpty() {
 
 
 /** Function to consolidate and run all unit tests in order */
-function runMainTests() {
+function runTests() {
     // Basic cases
     testLowerCaseSearchTermReturnsCorrectResults();
     testLowerCaseSearchTermReturnsCorrectNumberOfResults();
@@ -395,4 +399,4 @@ function runMainTests() {
 }
 
 /** Run test suite */
-runMainTests();
+runTests();

@@ -39,10 +39,10 @@
             const currentBookContent = currentBook.Content[j];
             const currentBookText = currentBookContent.Text;
 
-            // Escape special characters in the search string
+            // Escape special characters in the search string to allow punctuation search
             const escapedSearchTerm = formattedSearchTerm.replace(/[.*+?^${}()|[\]\\]/, "\\$&");
 
-            // Create a regular expression with word boundaries and case sensitivity
+            // Create a regular expression using word boundaries, with case sensitivity
             const regex = new RegExp("\\b" + escapedSearchTerm + "\\b");
 
             // Test if the target string contains the search string
@@ -59,21 +59,13 @@
     return result;
 }
 
-/*
- _   _ _   _ ___ _____   _____ _____ ____ _____ ____
-| | | | \ | |_ _|_   _| |_   _| ____/ ___|_   _/ ___|
-| | | |  \| || |  | |     | | |  _| \___ \ | | \___ \
-| |_| | |\  || |  | |     | | | |___ ___) || |  ___) |
- \___/|_| \_|___| |_|     |_| |_____|____/ |_| |____/
-
+ /*
+  _   _ _____ _     ____  _____ ____  ____
+ | | | | ____| |   |  _ \| ____|  _ \/ ___|
+ | |_| |  _| | |   | |_) |  _| | |_) \___ \
+ |  _  | |___| |___|  __/| |___|  _ < ___) |
+ |_| |_|_____|_____|_|   |_____|_| \_\____/
  */
-
-/* We have provided two unit tests. They're really just `if` statements that
- * output to the console. We've provided two tests as examples, and
- * they should pass with a correct implementation of `findSearchTermInBooks`.
- *
- * Please add your unit tests below.
- * */
 
  /** Test mocks */
  const twentyLeaguesIn = [
@@ -100,9 +92,35 @@
     }
 ];
 
+const singleInputEmptyContentIn = [
+    {
+        "Title": "Single Input With No Content Lines",
+        "ISBN": "9780000528532",
+        "Content": []
+    }
+];
+
+const emptyBookMatchesIn = [];
+
+function isMatchingLine(testLineMatch, expectedLineMatch) {
+    return (
+        testLineMatch.ISBN === expectedLineMatch.ISBN &&
+        testLineMatch.Page === expectedLineMatch.Page &&
+        testLineMatch.Line === expectedLineMatch.Line
+    );
+}
+
 /**
- * Basic test helper
  * Print out unit test results to compare expected versus actual results.
+ * A length comparison test passes if:
+ * - Lengths are equal
+ *
+ * A JSON response test passes if:
+ * - SearchTerm is equal
+ * - Same number of Results objects (can be 0)
+ * - Results objects are in same order (Results object is an array)
+ * - The ISBN, Page, and Line values in each Results object (if any) is the same
+ *
  * @param {JSON | number} testResult - JSON object or number representing the result of the test search.
  * @param {JSON | number} expectedResult - JSON object or number representing the correct expected result.
  * @param {String} testIdentifier - String to identify the test; e.g. the name of the test.
@@ -129,7 +147,7 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
         return;
     }
 
-    /** Note: JSON.stringify must be applied to simple objects only, or will fail due to reordering of keys */
+    /** Note: JSON.stringify may fail on complex objects due to reordering of keys */
     const testResultLineMatches = testResult.Results;
     const expectedResultLineMatches = expectedResult.Results;
 
@@ -140,25 +158,39 @@ function printTestResults(testResult, expectedResult, testIdentifier) {
         return;
     }
 
-    for (let i = 0; i < expectedResultLineMatches.length; i++) {
-        const testLineMatch = testResultLineMatches[i];
-        const expectedLineMatch = expectedResultLineMatches[i];
-        if (testLineMatch.ISBN === expectedLineMatch.ISBN &&
-            testLineMatch.Page === expectedLineMatch.Page &&
-            testLineMatch.Line === expectedLineMatch.Line) {
-                console.log("PASS");
-                break;
-            } else {
-                console.log("FAIL");
-                console.log("Expected:", expectedResult);
-                console.log("Received:", testResult);
-                break;
-            }
-    }
+    expectedResultLineMatches.find(expectedLineMatch => {
+        const testLineMatch = testResultLineMatches.find(testLineMatch =>
+            isMatchingLine(testLineMatch, expectedLineMatch)
+        );
+
+        if (!(testLineMatch)) {
+            console.log("FAIL");
+            console.log("Expected:", expectedResultLineMatches);
+            console.log("Received:", testResultLineMatches);
+            return false;
+        }
+    });
+
+    console.log("PASS");
 }
 
 
-/** We can check that, given a known input, we get a known output. */
+/*
+ _   _ _   _ ___ _____   _____ _____ ____ _____ ____
+| | | | \ | |_ _|_   _| |_   _| ____/ ___|_   _/ ___|
+| | | |  \| || |  | |     | | |  _| \___ \ | | \___ \
+| |_| | |\  || |  | |     | | | |___ ___) || |  ___) |
+ \___/|_| \_|___| |_|     |_| |_____|____/ |_| |____/
+*/
+
+/* We have provided two unit tests. They're really just `if` statements that
+ * output to the console. We've provided two tests as examples, and
+ * they should pass with a correct implementation of `findSearchTermInBooks`.
+ *
+ * Please add your unit tests below.
+ * */
+
+/** We can check that, given a known lowercase input, we get a known output. */
 function testLowerCaseSearchTermReturnsCorrectResults() {
     const testResult = findSearchTermInBooks("he", twentyLeaguesIn);
     const expectedResult =  {
@@ -192,6 +224,7 @@ function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
     printTestResults(testResult.Results.length, expectedResult.Results.length, "testLowerCaseSearchTermReturnsCorrectNumberOfResults");
 }
 
+/** We can check that, given a known capitalized input, we get a known output. */
 function testCapitalizedSearchTermReturnsCorrectResults() {
     const testResult = findSearchTermInBooks("The", twentyLeaguesIn);
     const expectedResult =  {
@@ -208,8 +241,10 @@ function testCapitalizedSearchTermReturnsCorrectResults() {
     printTestResults(testResult, expectedResult, "testCapitalizedSearchTermReturnsCorrectResults");
 }
 
-
-/** We can check that, given a search term, we do not match when it is partially in another word */
+/**
+ * We can check that, given a search term, we do not match when it is partially in another word
+ * Example: "then" is not a match for "the".
+*/
 function testSearchTermDoesNotMatchAsSubstring() {
     const testResult = findSearchTermInBooks("the", twentyLeaguesIn);
     const expectedResult =  {
@@ -243,7 +278,7 @@ function testSearchTermWithMultipleWordsReturnsCorrectResults() {
     printTestResults(testResult, expectedResult, "testSearchTermWithMultipleWordsReturnsCorrectResults");
 }
 
-/** We can check that, given a search term, it can successfully match at the start of a string */
+/** We can check that, given a search term, it can successfully match at the start of a line */
 function testSearchTermMatchesStartOfStringCorrectly() {
     const testResult = findSearchTermInBooks("eyes", twentyLeaguesIn);
     const expectedResult =  {
@@ -316,6 +351,28 @@ function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
     printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWhenNextToPunctuation");
 }
 
+/** We can check that a single input with no content lines returns no matches */
+function testSearchTermReturnsNoResultsWhenSingleInputHasNoContent() {
+    const testResult = findSearchTermInBooks("profound", singleInputEmptyContentIn);
+    const expectedResult =  {
+        "SearchTerm": "profound",
+        "Results": []
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermReturnsNoResultsWhenSingleInputHasNoContent");
+}
+
+/** We can check that completely empty input returns no matches */
+function testSearchTermReturnsNoResultsWhenInputIsEmpty() {
+    const testResult = findSearchTermInBooks("eyes", emptyBookMatchesIn);
+    const expectedResult =  {
+        "SearchTerm": "eyes",
+        "Results": []
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermReturnsNoResultsWhenInputIsEmpty");
+}
+
 
 /** Function to consolidate and run all unit tests in order */
 function runMainTests() {
@@ -326,13 +383,16 @@ function runMainTests() {
     testSearchTermDoesNotMatchAsSubstring();
     testSearchTermWithMultipleWordsReturnsCorrectResults();
 
-
     // Edge cases - Punctuation
     testSearchTermMatchesStartOfStringCorrectly();
     testSearchTermMatchesEndOfStringCorrectly();
     testSearchTermWithApostropheReturnsCorrectResults();
     testSearchTermReturnsCorrectResultsWhenNextToPunctuation();
+
+    // Edge cases - Empty Objects
+    testSearchTermReturnsNoResultsWhenSingleInputHasNoContent();
+    testSearchTermReturnsNoResultsWhenInputIsEmpty();
 }
 
-/** Run main test suite */
+/** Run test suite */
 runMainTests();

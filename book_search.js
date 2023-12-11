@@ -161,20 +161,6 @@ const otherLanguageIn = [
 ];
 
 /**
- * Helper that checks if a two line match objects are equivalent in value.
- * @param {JSON} testLineMatch Line match object to test
- * @param {JSON} expectedLineMatch Line match object to test
- * @returns {Boolean} Returns true if ISBN, Page, and Line values are equal.
- */
-function isMatchingLine(testLineMatch, expectedLineMatch) {
-    return (
-        testLineMatch.ISBN === expectedLineMatch.ISBN &&
-        testLineMatch.Page === expectedLineMatch.Page &&
-        testLineMatch.Line === expectedLineMatch.Line
-    );
-}
-
-/**
  * Helper that prints out unit test results to compare expected versus actual results for
  * comparing object values in JSON responses.
  *
@@ -187,7 +173,7 @@ function isMatchingLine(testLineMatch, expectedLineMatch) {
  * @param {JSON} expectedResult - JSON object representing the correct expected result.
  * @returns {Void} Prints failure or success message as well as both parameters.
  */
-function printTestResults(testResult, expectedResult) {
+function compareResultJson(testResult, expectedResult) {
     if (JSON.stringify(testResult == JSON.stringify(expectedResult))) {
         console.log("PASS");
         return;
@@ -210,7 +196,7 @@ function printTestResults(testResult, expectedResult) {
  * @param {Number} expectedResult - Number representing the correct expected result.
  * @returns {Void} Prints failure or success message as well as both parameters.
  */
-function printTestResultsForResultsLengthTest(testResult, expectedResult) {
+function compareResultLengths(testResult, expectedResult) {
     if (testResult.SearchTerm !== expectedResult.SearchTerm) {
         console.log("FAIL");
         console.log("Expected:", expectedResult);
@@ -259,7 +245,7 @@ function testLowerCaseSearchTermReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We could choose to check that we get the right number of results. */
@@ -277,7 +263,7 @@ function testLowerCaseSearchTermReturnsCorrectNumberOfResults() {
         ]
     };
 
-    printTestResultsForResultsLengthTest(testResult.Results.length, expectedResult.Results.length);
+    compareResultLengths(testResult.Results.length, expectedResult.Results.length);
 }
 
 /** We can check that, given a known capitalized input, we get a known output. */
@@ -295,7 +281,7 @@ function testCapitalizedSearchTermReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that, given a search term with more than one word, it matches correctly */
@@ -313,7 +299,7 @@ function testSearchTermWithMultipleWordsReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that, given multiple books in the input, we return the correct results */
@@ -336,7 +322,7 @@ function testSearchTermReturnsCorrectResultsWithMultipleBooksAsInput() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that, given a search term, it can successfully match at the start of a line */
@@ -354,7 +340,7 @@ function testSearchTermMatchesStartOfStringCorrectly() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that, given a search term, it can successfully match at the end of a string */
@@ -377,7 +363,7 @@ function testSearchTermMatchesEndOfStringCorrectly() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that given a search term with an apostrophe, it is matched correctly */
@@ -395,7 +381,7 @@ function testSearchTermWithApostropheReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that a search term matches correctly when located next to punctuation */
@@ -413,7 +399,7 @@ function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that a search term matches correctly when the search term starts with punctuation */
@@ -431,7 +417,7 @@ function testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that a single input with no content lines returns no matches */
@@ -443,7 +429,7 @@ function testSearchTermReturnsNoResultsWhenSingleInputHasNoContent() {
         "Results": []
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that completely empty input returns no matches */
@@ -455,7 +441,7 @@ function testSearchTermReturnsNoResultsWhenInputIsEmpty() {
         "Results": []
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that a search in another language returns correct results */
@@ -473,7 +459,7 @@ function testSearchTermReturnsCorrectResultsInAnotherLanguage() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** We can check that a search term with multiple languages returns correct results */
@@ -491,7 +477,7 @@ function testMixedLanguageSearchTermReturnsCorrectResults() {
         ]
     };
 
-    printTestResults(testResult, expectedResult);
+    compareResultJson(testResult, expectedResult);
 }
 
 /** Function to consolidate and run all unit tests in order */

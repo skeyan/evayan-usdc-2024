@@ -387,9 +387,9 @@ function testSearchTermReturnsNoResultsWhenSingleInputHasNoContent() {
 
 /** We can check that completely empty input returns no matches */
 function testSearchTermReturnsNoResultsWhenInputIsEmpty() {
-    const testResult = findSearchTermInBooks("eyes", emptyBookMatchesIn);
+    const testResult = findSearchTermInBooks("profound", emptyBookMatchesIn);
     const expectedResult =  {
-        "SearchTerm": "eyes",
+        "SearchTerm": "profound",
         "Results": []
     };
 

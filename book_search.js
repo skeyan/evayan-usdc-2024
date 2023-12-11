@@ -373,6 +373,23 @@ function testSearchTermReturnsCorrectResultsWhenNextToPunctuation() {
     printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWhenNextToPunctuation");
 }
 
+/** We can check that a search term matches correctly when the search term starts with punctuation */
+function testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation() {
+    const testResult = findSearchTermInBooks(".  The", twentyLeaguesIn);
+    const expectedResult =  {
+        "SearchTerm": ".  The",
+        "Results": [
+            {
+                "ISBN": "9780000528531",
+                "Page": 31,
+                "Line": 8
+            }
+        ]
+    };
+
+    printTestResults(testResult, expectedResult, "testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation");
+}
+
 /** We can check that a single input with no content lines returns no matches */
 function testSearchTermReturnsNoResultsWhenSingleInputHasNoContent() {
     const testResult = findSearchTermInBooks("profound", singleInputEmptyContentIn);
@@ -410,6 +427,7 @@ function runTests() {
     testSearchTermMatchesEndOfStringCorrectly();
     testSearchTermWithApostropheReturnsCorrectResults();
     testSearchTermReturnsCorrectResultsWhenNextToPunctuation();
+    testSearchTermReturnsCorrectResultsWhenStartingWithPunctuation();
 
     // Edge cases - Empty Objects
     testSearchTermReturnsNoResultsWhenSingleInputHasNoContent();

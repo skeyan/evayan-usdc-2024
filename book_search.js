@@ -115,7 +115,6 @@ function isMatchingLine(testLineMatch, expectedLineMatch) {
  * The JSON response test passes if:
  * - SearchTerm is equal
  * - Same number of Results objects (can be 0)
- * - Results objects are in same order (Results object is an array)
  * - The ISBN, Page, and Line values in each Results object (if any) is the same
  *
  * @param {JSON} testResult - JSON object representing the result of the test search.
